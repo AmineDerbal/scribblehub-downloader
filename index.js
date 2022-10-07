@@ -29,27 +29,35 @@ app.listen(port, () => {
   console.log(`this server is in port ${port}`);
 });
 
-const getAllLinks = async (url) => {
-  let isIndex = /\/series\//;
-  const links = [];
-  if (isIndex.test(url)) {
-    console.log("url", url);
-
-    const browser = await puppeteer.launch();
-    const page = await browser.newPage();
-    const response = await page.goto(url);
-
-    const bodyHandle = await page.$("body");
-    /*  const html = await page.evaluate((body) => {
-      const mappedLinks = body.getElementsByClassName("toc_a");
-      console.log("mappedLinks", mappedLinks);
-      return mappedLinks;
-    }, bodyHandle);
-    console.log(html);*/
-
-    // const mappedLinks = await page.$(".toc_a");
-    // console.log("mappedLinks", mappedLinks);
+const getAllLinks = async (url, page) => {
+  await page.goto(url);
+  const tocLinks = [];
+  tocLinks.push(
+    await page.evaluate((el) => el.href, await page.$("a[class='current']"))
+  );
+  console.log("toclinks", tocLinks);
+  while ((await page.$("a[class='page-link next'")) !== null) {
+    await page.goto(
+      await page.evaluate(
+        (el) => el.href,
+        await page.$("a[class='page-link next'")
+      )
+    );
+    tocLinks.push(
+      await page.evaluate((el) => el.href, await page.$("a[class='current']"))
+    );
   }
+  console.log("toclinks", tocLinks);
+
+  let now = await page.evaluate(
+    (el) => el.href,
+    await page.$("a[class='page-link next']")
+  );
+
+  // get Url of chapter in the toc page
+  /* const text = await page.evaluate(() =>
+    Array.from(document.querySelectorAll(".toc_a"), (element) => element.href)
+  );*/
 };
 
 const getPage = async (url) => {
@@ -61,15 +69,22 @@ const getPage = async (url) => {
       reject(response.status());
       return;
     }
-    let indexUrl = /\/read\//;
-    if (indexUrl.test(url)) {
-      console.log("true");
+
+    // if the url of given has read as a path
+    let urlRead = /\/read\//;
+    if (urlRead.test(url)) {
       const indexSerie = await page.$(".c_index a");
       let serieUrl = await page.evaluate((el) => el.href, indexSerie);
       console.log("the serie url", serieUrl);
       url = serieUrl;
     }
-    getAllLinks(url);
+    // if url has toc path in the end eg : ?toc=11#content1
+    let urlToc =
+      /https?:\/\/www.scribblehub.com\/series\/\d{2,6}\/[\w|\W]+\/?toc=/;
+    if (urlToc.test(url)) {
+      url = url.match(urlToc)[0] + "1";
+    }
+    getAllLinks(url, page);
     // const chapter = await page.$("#chp_raw");
     //const value = await page.evaluate((el) => el.textContent, chapter);
     //if (!value) reject("Une erreur s'est produite: Pas de chapitre.");

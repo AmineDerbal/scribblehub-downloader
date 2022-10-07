@@ -2,6 +2,7 @@ html {
   padding: 0;
   margin: 0;
   height: 100%;
+  box-sizing: border-box;
 }
 
 .header {
@@ -9,4 +10,13 @@ html {
   flex-direction: column;
   justify-content: center;
   align-items: center;
+  gap: 0.5rem;
+}
+
+input[type="text"] {
+  /* Set width to 40characters */
+  width: 50rem;
+
+  /* prevent overflow of container */
+  max-width: 100%;
 }
