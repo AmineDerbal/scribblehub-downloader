@@ -32,10 +32,13 @@ const post = async (url) => {
   try {
     console.log("sending data");
     console.log(JSON.parse(options.body).url);
-
     const urlStream = await fetch("/", options);
     console.log("done");
-    return urlStream;
+    //console.log(urlStream);
+    const urlData = await urlStream.json();
+    console.log("fetching data");
+    console.log(urlData);
+    return urlData;
   } catch (err) {
     return { Error: err.stack };
   }

@@ -18,40 +18,25 @@ app.get("/", (req, res) => {
 app.post("/", async (req, res) => {
   const url = req.body.url;
   // const allLinks = await getAllLinks(url);
-
-  getPage(url)
-    .then((chapter) => res.send(chapter))
+  try {
+    const chaptersData = await getPage(url);
+    // console.log("chapterData", chaptersData);
+    //console.log("the json");
+    //const chaptersJson = await chaptersData.json();
+    //console.log("chapter JSON", chaptersJson);
+    res.json(chaptersData);
+  } catch (err) {
+    res.send(`Une erreur s'est produite: ${err}`);
+  }
+  /* getPage(url)
+    .then((chapter).json => res.send(chapter))
     .catch((err) => {
       res.send(`Une erreur s'est produite: ${err}`);
-    });
+    });*/
 });
 app.listen(port, () => {
   console.log(`this server is in port ${port}`);
 });
-
-const getAllLinks = async (url, page) => {
-  await page.goto(url);
-  const tocLinks = [];
-  tocLinks.push(
-    await page.evaluate((el) => el.href, await page.$("a[class='current']"))
-  );
-  while ((await page.$("a[class='page-link next'")) !== null) {
-    await page.goto(
-      await page.evaluate(
-        (el) => el.href,
-        await page.$("a[class='page-link next'")
-      )
-    );
-    tocLinks.push(
-      await page.evaluate((el) => el.href, await page.$("a[class='current']"))
-    );
-  }
-  console.log("toclinks", tocLinks);
-  const chaptersList = await getListOfChapters(tocLinks);
-  const allChaptersContent = await getAllChaptersContent(chaptersList);
-  console.log("all chapters Content");
-  console.log(allChaptersContent);
-};
 
 const getPage = async (url) => {
   return new Promise(async (resolve, reject) => {
@@ -77,12 +62,41 @@ const getPage = async (url) => {
     if (urlToc.test(url)) {
       url = url.match(urlToc)[0] + "1";
     }
-    getAllLinks(url, page);
-    // const chapter = await page.$("#chp_raw");
-    //const value = await page.evaluate((el) => el.textContent, chapter);
-    //if (!value) reject("Une erreur s'est produite: Pas de chapitre.");
-    //resolve(value);
+    const file = await getAllLinks(url, page);
+    if (!file) reject("Une erreur s'est produite: Pas de chapitre.");
+    // console.log("file", file);
+    resolve(file);
   });
+};
+
+const getAllLinks = async (url, page) => {
+  await page.goto(url);
+  let file = {};
+  const tocLinks = [];
+  const description = await page.$(".wi_fic_desc");
+  file.description = await page.evaluate((el) => el.textContent, description);
+  console.log(file.description);
+
+  tocLinks.push(
+    await page.evaluate((el) => el.href, await page.$("a[class='current']"))
+  );
+  while ((await page.$("a[class='page-link next'")) !== null) {
+    await page.goto(
+      await page.evaluate(
+        (el) => el.href,
+        await page.$("a[class='page-link next'")
+      )
+    );
+    tocLinks.push(
+      await page.evaluate((el) => el.href, await page.$("a[class='current']"))
+    );
+  }
+  console.log("toclinks", tocLinks);
+  const chaptersList = await getListOfChapters(tocLinks);
+  const allChaptersContent = await getAllChaptersContent(chaptersList);
+  file.content = allChaptersContent;
+
+  return file;
 };
 
 // get the list of all chapters in the serie;
