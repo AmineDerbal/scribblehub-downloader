@@ -35,7 +35,6 @@ const getAllLinks = async (url, page) => {
   tocLinks.push(
     await page.evaluate((el) => el.href, await page.$("a[class='current']"))
   );
-  console.log("toclinks", tocLinks);
   while ((await page.$("a[class='page-link next'")) !== null) {
     await page.goto(
       await page.evaluate(
@@ -48,7 +47,9 @@ const getAllLinks = async (url, page) => {
     );
   }
   console.log("toclinks", tocLinks);
-
+  const list = await getListOfChapters(tocLinks);
+  console.log(`number of chapters in this serie is : ${list.length}`);
+  console.log("the List", list);
   // get Url of chapter in the toc page
   /* const text = await page.evaluate(() =>
     Array.from(document.querySelectorAll(".toc_a"), (element) => element.href)
@@ -85,4 +86,19 @@ const getPage = async (url) => {
     //if (!value) reject("Une erreur s'est produite: Pas de chapitre.");
     //resolve(value);
   });
+};
+
+// get the list of all chapters in a serie;
+const getListOfChapters = async (links) => {
+  let chapterLists = [];
+  const browser = await puppeteer.launch();
+  const page = await browser.newPage();
+  for (let i = 0; i < links.length; i++) {
+    await page.goto(links[i]);
+    const list = await page.evaluate(() =>
+      Array.from(document.querySelectorAll(".toc_a"), (element) => element.href)
+    );
+    chapterLists.push(...list);
+  }
+  return chapterLists;
 };
