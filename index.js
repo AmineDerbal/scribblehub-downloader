@@ -49,11 +49,6 @@ const getAllLinks = async (url, page) => {
   }
   console.log("toclinks", tocLinks);
 
-  let now = await page.evaluate(
-    (el) => el.href,
-    await page.$("a[class='page-link next']")
-  );
-
   // get Url of chapter in the toc page
   /* const text = await page.evaluate(() =>
     Array.from(document.querySelectorAll(".toc_a"), (element) => element.href)
