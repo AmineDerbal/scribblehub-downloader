@@ -73,6 +73,8 @@ const getAllLinks = async (url, page) => {
   await page.goto(url);
   let file = {};
   const tocLinks = [];
+  const serieName = await page.$(".fic_title");
+  file.serieName = await page.evaluate((el) => el.textContent, serieName);
   const description = await page.$(".wi_fic_desc");
   file.description = await page.evaluate((el) => el.textContent, description);
   console.log(file.description);
@@ -122,10 +124,10 @@ const getAllChaptersContent = async (chapterLists) => {
   const page = await browser.newPage();
   for (let i = 0; i < chapterLists.length; i++) {
     await page.goto(chapterLists[i]);
-    const title = await page.$(".chapter-title");
+    const chapterTitle = await page.$(".chapter-title");
     const content = await page.$("#chp_raw");
     const chapter = {
-      title: await page.evaluate((el) => el.textContent, title),
+      chapterTitle: await page.evaluate((el) => el.textContent, chapterTitle),
       content: await page.evaluate((el) => el.textContent, content),
     };
     allChaptersContent.push(chapter);

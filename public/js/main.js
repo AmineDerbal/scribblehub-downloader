@@ -11,6 +11,21 @@ urlSubmitButton.addEventListener("click", async (e) => {
     console.log("url", url.value);
     const response = await post(url);
     //  console.log("response", await response.text());
+    console.log("create a div");
+    const content = document.createElement("div");
+    content.classList.add("content");
+    body = document.querySelector("body");
+    body.appendChild(content);
+
+    const serieName = document.createElement("h1");
+    serieName.classList.add("serie-name");
+    serieName.textContent = response.serieName;
+    content.appendChild(serieName);
+
+    const serieSynopsis = document.createElement("div");
+    serieSynopsis.classList.add("serie-synopsis");
+    serieSynopsis.textContent = response.description;
+    content.appendChild(serieSynopsis);
   }
 });
 
@@ -37,7 +52,7 @@ const post = async (url) => {
     //console.log(urlStream);
     const urlData = await urlStream.json();
     console.log("fetching data");
-    console.log(urlData);
+    //console.log(urlData);
     return urlData;
   } catch (err) {
     return { Error: err.stack };
