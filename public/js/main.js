@@ -10,6 +10,7 @@ urlSubmitButton.addEventListener("click", async (e) => {
 
     console.log("url", url.value);
     const response = await post(url);
+    console.log(response.content[0].chapterContent);
     //  console.log("response", await response.text());
     console.log("create a div");
     const content = document.createElement("div");
@@ -19,13 +20,31 @@ urlSubmitButton.addEventListener("click", async (e) => {
 
     const serieName = document.createElement("h1");
     serieName.classList.add("serie-name");
-    serieName.textContent = response.serieName;
+    serieName.innerHTML = response.serieName;
     content.appendChild(serieName);
 
     const serieSynopsis = document.createElement("div");
     serieSynopsis.classList.add("serie-synopsis");
-    serieSynopsis.textContent = response.description;
+    serieSynopsis.innerHTML = "<strong>Synopsis</strong><br>";
+    console.log(serieSynopsis.innerHTML);
+    serieSynopsis.innerHTML += response.description;
     content.appendChild(serieSynopsis);
+
+    const serieChaptersContent = document.createElement("div");
+    serieChaptersContent.classList.add("serie-chapters-content");
+    content.appendChild(serieChaptersContent);
+
+    for (let i = 0; i < response.content.length; i++) {
+      const chapterTitle = document.createElement("h2");
+      chapterTitle.classList.add("chapter-title");
+      chapterTitle.innerHTML = response.content[i].chapterTitle;
+      serieChaptersContent.appendChild(chapterTitle);
+
+      const chapterContent = document.createElement("div");
+      chapterContent.classList.add("chapter-content");
+      chapterContent.innerHTML = response.content[i].chapterContent;
+      serieChaptersContent.appendChild(chapterContent);
+    }
   }
 });
 
@@ -34,7 +53,6 @@ const testUrl = (url) => {
   return urlRegex.test(url);
 };
 const post = async (url) => {
-  // console.log(url.value);
   const options = {
     method: "POST",
     headers: {
