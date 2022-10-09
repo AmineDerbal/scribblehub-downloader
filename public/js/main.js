@@ -10,7 +10,10 @@ urlSubmitButton.addEventListener("click", async (e) => {
 
     console.log("url", url.value);
     const response = await post(url);
-    console.log(response.content[0].chapterContent);
+    console.log(response);
+
+    return;
+    /* console.log(response.content[0].chapterContent);
     //  console.log("response", await response.text());
     console.log("create a div");
     const content = document.createElement("div");
@@ -44,7 +47,7 @@ urlSubmitButton.addEventListener("click", async (e) => {
       chapterContent.classList.add("chapter-content");
       chapterContent.innerHTML = response.content[i].chapterContent;
       serieChaptersContent.appendChild(chapterContent);
-    }
+    } */
   }
 });
 

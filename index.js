@@ -1,6 +1,10 @@
+import fs from "fs";
+import path from "path";
 import express from "express";
 import puppeteer from "puppeteer";
 import cors from "cors";
+import PDFDocument from "pdfkit";
+import { convert } from "html-to-text";
 
 const app = express();
 const port = 3000;
@@ -19,12 +23,12 @@ app.post("/", async (req, res) => {
   const url = req.body.url;
   // const allLinks = await getAllLinks(url);
   try {
-    const chaptersData = await getPage(url);
+    const downloadLink = await getPage(url);
     // console.log("chapterData", chaptersData);
     //console.log("the json");
     //const chaptersJson = await chaptersData.json();
     //console.log("chapter JSON", chaptersJson);
-    res.json(chaptersData);
+    res.json(downloadLink);
   } catch (err) {
     res.send(`Une erreur s'est produite: ${err}`);
   }
@@ -62,11 +66,69 @@ const getPage = async (url) => {
     if (urlToc.test(url)) {
       url = url.match(urlToc)[0] + "1";
     }
-    const file = await getAllLinks(url, page);
-    if (!file) reject("Une erreur s'est produite: Pas de chapitre.");
+    const linkToFile = await getAllLinks(url, page);
+    console.log("~ linkToFile", linkToFile);
+    if (!linkToFile) reject("Une erreur s'est produite: Pas de chapitre.");
     // console.log("file", file);
-    resolve(file);
+    resolve(linkToFile);
   });
+};
+
+const generatePDF = (file) => {
+  // Create a document
+  const doc = new PDFDocument();
+
+  // Check if downloads file exists
+  if (!fs.existsSync("downloads"))
+    fs.mkdir("downloads", (err) => {
+      if (err) {
+        return console.error(err);
+      }
+    });
+
+  // Pipe its output somewhere, like to a file or HTTP response
+  // See below for browser usage
+  doc.pipe(fs.createWriteStream(`./downloads/${file.serieName}.pdf`));
+
+  // Embed a font, set the font size, and render some text
+  // doc
+  //   .font("fonts/PalatinoBold.ttf")
+  //   .fontSize(25)
+  //   .text("Some text with an embedded font!", 100, 100);
+
+  // Add another page
+  // doc.addPage().fontSize(25).text("Here is some vector graphics...", 100, 100);
+
+  doc
+    .text(file.serieName, 15, 15)
+    .underline(100, 100, 160, 27, { color: "#0000FF" });
+  doc.text("SYNOPSIS: ", 15, 40);
+  doc.text(
+    convert(file.description, {
+      wordwrap: 130,
+    }),
+    15,
+    75
+  );
+
+  for (let index = 0; index < file.content.length; index++) {
+    doc.addPage();
+    doc.text(file.content[index].chapterTitle);
+    doc.moveDown();
+    doc.moveDown();
+
+    const richText = convert(file.content[index].chapterContent, {
+      wordwrap: 130,
+    });
+
+    doc.text(richText, {
+      continued: true,
+    });
+  }
+
+  // Finalize PDF file
+  doc.end();
+  return path.resolve(`./downloads/${file.serieName}.pdf`);
 };
 
 const getAllLinks = async (url, page) => {
@@ -97,8 +159,10 @@ const getAllLinks = async (url, page) => {
   const chaptersList = await getListOfChapters(tocLinks);
   const allChaptersContent = await getAllChaptersContent(chaptersList);
   file.content = allChaptersContent;
+  const linkToFile = generatePDF(file);
+  console.log("~ linkToFile", linkToFile);
 
-  return file;
+  return linkToFile;
 };
 
 // get the list of all chapters in the serie;
