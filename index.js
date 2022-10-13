@@ -58,7 +58,7 @@ const getSerieDownloadLink = async (url) => {
     if (serieMatch.test(url)) {
       url = url.match(serieMatch)[1];
     }
-    const linkToFile = await getAllLinks(url, page);
+    const linkToFile = await generatePdf(url, page);
     // console.log("~ linkToFile", linkToFile);
     browser.close();
     if (!linkToFile) reject("Une erreur s'est produite: Pas de chapitre.");
@@ -66,142 +66,156 @@ const getSerieDownloadLink = async (url) => {
   });
 };
 
-const getAllLinks = async (url, page) => {
-  // Create a document PDF
-  const doc = new PDFDocument();
+const generatePdf = async (url, page) => {
+  try {
+    // Create a document PDF
+    const doc = new PDFDocument();
 
-  // Check if downloads folder exists
-  if (!fs.existsSync("downloads"))
-    fs.mkdir("downloads", (err) => {
-      if (err) {
-        return console.error(err);
-      }
-    });
-  await page.goto(url);
-  let serieName = await page.evaluate(
-    (el) => el.innerHTML,
-    await page.$(".fic_title")
-  );
-  console.log("the serie name", serieName);
+    // Check if downloads folder exists
+    if (!fs.existsSync("downloads"))
+      fs.mkdir("downloads", (err) => {
+        if (err) {
+          return console.error(err);
+        }
+      });
+    await page.goto(url);
+    let serieName = await page.evaluate(
+      (el) => el.innerHTML,
+      await page.$(".fic_title")
+    );
+    console.log("the serie name", serieName);
 
-  // Pipe its output somewhere, like to a file or HTTP response
-  // See below for browser usage
-  doc.pipe(
-    fs.createWriteStream(
-      `./downloads/${serieName.replace(/[^a-zA-Z0-9 ]/g, "")}.pdf`
-    )
-  );
-
-  console.log("serie name : ", serieName);
-
-  // write the book infos in the PDF Document
-  doc.font("Times-Bold").fontSize(35).text(serieName, {
-    align: "center",
-  });
-
-  doc.moveDown();
-
-  const serieImage = await page.evaluate(
-    (el) => el.src,
-    await page.$(".fic_image img")
-  );
-
-  console.log("image", serieImage);
-  const image = await fetchImage(serieImage);
-  let imageWidth = 180;
-  doc
-    .image(image, doc.page.width / 2 - imageWidth / 2, doc.y, {
-      width: imageWidth,
-    })
-    .stroke();
-  doc.moveDown(0.5);
-  addSerieInfoToPdf(
-    doc,
-    "Author Name : ",
-    await page.evaluate((el) => el.textContent, await page.$(".auth_name_fic"))
-  );
-  doc.moveDown(0.5);
-  addSerieInfoToPdf(doc, "Serie Link : ", url, 16, "blue");
-  doc.moveDown(0.5);
-  addSerieInfoToPdf(
-    doc,
-    "Author Link : ",
-    await page.evaluate(
-      (el) => el.href,
-      await page.$("span[property='name'] a")
-    ),
-    16,
-    "blue"
-  );
-  doc.moveDown(0.5);
-  addSerieInfoToPdf(
-    doc,
-    "Last Update : ",
-    await page.evaluate(
-      (el) => el.textContent,
-      await page.$(".toc_ol:first-child .fic_date_pub")
-    )
-  );
-  doc.moveDown(0.5);
-  addSerieInfoToPdf(
-    doc,
-    "number of chapters : ",
-    `${await page.evaluate(
-      (el) => el.getAttribute("order"),
-      await page.$(".toc_ol :first-child ")
-    )} chapters`
-  );
-  doc.moveDown(0.5);
-
-  doc.addPage();
-  addSerieInfoToPdf(
-    doc,
-    "SYNOPSIS : ",
-    convert(
-      await page.evaluate((el) => el.innerHTML, await page.$(".wi_fic_desc")),
-      {
-        wordwrap: 130,
-      }
-    )
-  );
-
-  // get the url of last table of content
-  let lastTocUrl = url;
-  while ((await page.$("a[class='page-link next']")) !== null) {
-    await page.goto(
-      await page.evaluate(
-        (el) => el.href,
-        await page.$("a[class='page-link next']")
+    // Pipe its output somewhere, like to a file or HTTP response
+    // See below for browser usage
+    doc.pipe(
+      fs.createWriteStream(
+        `./downloads/${serieName.replace(/[^a-zA-Z0-9 ]/g, "")}.pdf`
       )
     );
-    lastTocUrl = await page.evaluate(
-      (el) => el.href,
-      await page.$("a[class='current']")
-    );
-  }
-  // get the url of the first chapter in the book
-  let firstChapterLink = await page.$("li[order='1'] a");
-  let firstChapterHref = await page.evaluate((el) => el.href, firstChapterLink);
-  console.log("href of first Chapter", firstChapterHref);
 
-  await page.goto(firstChapterHref);
-  await addChapterContentToPdf(doc, page);
-  let index = 2;
-  while (await page.$("a[class='btn-wi btn-next']")) {
-    let nextHref = await page.evaluate(
-      (el) => el.href,
-      await page.$("a[class='btn-wi btn-next']")
+    // write the book infos in the PDF Document
+    doc.font("Times-Bold").fontSize(35).text(serieName, {
+      align: "center",
+    });
+
+    doc.moveDown();
+
+    const serieImage = await page.evaluate(
+      (el) => el.src,
+      await page.$(".fic_image img")
     );
-    await page.goto(nextHref);
+
+    console.log("image", serieImage);
+    const image = await fetchImage(serieImage);
+    let imageWidth = 180;
+    doc
+      .image(image, doc.page.width / 2 - imageWidth / 2, doc.y, {
+        width: imageWidth,
+      })
+      .stroke();
+    doc.moveDown(0.5);
+    addSerieInfoToPdf(
+      doc,
+      "Author Name : ",
+      await page.evaluate(
+        (el) => el.textContent,
+        await page.$(".auth_name_fic")
+      )
+    );
+    doc.moveDown(0.5);
+    addSerieInfoToPdf(doc, "Serie Link : ", url, 16, "blue");
+    doc.moveDown(0.5);
+    addSerieInfoToPdf(
+      doc,
+      "Author Link : ",
+      await page.evaluate(
+        (el) => el.href,
+        await page.$("span[property='name'] a")
+      ),
+      16,
+      "blue"
+    );
+    doc.moveDown(0.5);
+    addSerieInfoToPdf(
+      doc,
+      "Last Update : ",
+      await page.evaluate(
+        (el) => el.textContent,
+        await page.$(".toc_ol:first-child .fic_date_pub")
+      )
+    );
+    doc.moveDown(0.5);
+    addSerieInfoToPdf(
+      doc,
+      "number of chapters : ",
+      `${await page.evaluate(
+        (el) => el.getAttribute("order"),
+        await page.$(".toc_ol :first-child ")
+      )} chapters`
+    );
+    doc.moveDown(0.5);
+
+    doc.addPage();
+    addSerieInfoToPdf(
+      doc,
+      "SYNOPSIS : ",
+      convert(
+        await page.evaluate((el) => el.innerHTML, await page.$(".wi_fic_desc")),
+        {
+          wordwrap: 130,
+        }
+      )
+    );
+
+    // get the url of last table of content
+    let lastTocUrl = url;
+    while ((await page.$("a[class='page-link next']")) !== null) {
+      await page.goto(
+        await page.evaluate(
+          (el) => el.href,
+          await page.$("a[class='page-link next']")
+        )
+      );
+      lastTocUrl = await page.evaluate(
+        (el) => el.href,
+        await page.$("a[class='current']")
+      );
+    }
+    // get the url of the first chapter in the book
+    let firstChapterLink = await page.$("li[order='1'] a");
+    let firstChapterHref = await page.evaluate(
+      (el) => el.href,
+      firstChapterLink
+    );
+    console.log("href of first Chapter", firstChapterHref);
+
+    await page.goto(firstChapterHref);
     await addChapterContentToPdf(doc, page);
-    console.log(`href of index ${index} : ${nextHref}`);
-    index++;
+    let index = 2;
+    while (await page.$("a[class='btn-wi btn-next']")) {
+      let nextHref = await page.evaluate(
+        (el) => el.href,
+        await page.$("a[class='btn-wi btn-next']")
+      );
+      await page.goto(nextHref);
+      await addChapterContentToPdf(doc, page);
+      console.log(`href of index ${index} : ${nextHref}`);
+      index++;
+    }
+
+    console.log("end of pdf");
+    doc.end();
+
+    return (respnse = {
+      status: "Success",
+      link: path.resolve(`./downloads/${serieName}.pdf`),
+    });
+  } catch (err) {
+    return (response = {
+      status: "Error",
+      Error: err,
+    });
   }
-
-  console.log("end of pdf");
-  doc.end();
-
-  return path.resolve(`./downloads/${serieName}.pdf`);
 };
 
 const fetchImage = async (src) => {

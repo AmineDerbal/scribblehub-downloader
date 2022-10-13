@@ -10,44 +10,11 @@ urlSubmitButton.addEventListener("click", async (e) => {
 
     console.log("url", url.value);
     const response = await post(url);
-    console.log(response);
-
-    return;
-    /* console.log(response.content[0].chapterContent);
-    //  console.log("response", await response.text());
-    console.log("create a div");
-    const content = document.createElement("div");
-    content.classList.add("content");
-    body = document.querySelector("body");
-    body.appendChild(content);
-
-    const serieName = document.createElement("h1");
-    serieName.classList.add("serie-name");
-    serieName.innerHTML = response.serieName;
-    content.appendChild(serieName);
-
-    const serieSynopsis = document.createElement("div");
-    serieSynopsis.classList.add("serie-synopsis");
-    serieSynopsis.innerHTML = "<strong>Synopsis</strong><br>";
-    console.log(serieSynopsis.innerHTML);
-    serieSynopsis.innerHTML += response.description;
-    content.appendChild(serieSynopsis);
-
-    const serieChaptersContent = document.createElement("div");
-    serieChaptersContent.classList.add("serie-chapters-content");
-    content.appendChild(serieChaptersContent);
-
-    for (let i = 0; i < response.content.length; i++) {
-      const chapterTitle = document.createElement("h2");
-      chapterTitle.classList.add("chapter-title");
-      chapterTitle.innerHTML = response.content[i].chapterTitle;
-      serieChaptersContent.appendChild(chapterTitle);
-
-      const chapterContent = document.createElement("div");
-      chapterContent.classList.add("chapter-content");
-      chapterContent.innerHTML = response.content[i].chapterContent;
-      serieChaptersContent.appendChild(chapterContent);
-    } */
+    //console.log(response);
+    if (response.status == "Error") {
+      console.log("Error : ", response.Error);
+      return;
+    }
   }
 });
 
@@ -76,6 +43,6 @@ const post = async (url) => {
     //console.log(urlData);
     return urlData;
   } catch (err) {
-    return { Error: err.stack };
+    return { Error: err, status: "Error" };
   }
 };
