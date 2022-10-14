@@ -6,9 +6,17 @@ import cors from "cors";
 import PDFDocument from "pdfkit";
 import { convert } from "html-to-text";
 import axios from "axios";
+import findRemoveSync from "find-remove";
+import { fileURLToPath } from "url";
+import rimraf from "rimraf";
+
+const __filename = fileURLToPath(import.meta.url);
+
+const __dirname = path.dirname(__filename);
 
 const app = express();
 const port = 3000;
+const downloadsDir = __dirname + "/downloads";
 
 app.set("view engine", "ejs");
 app.use(express.static("public"));
@@ -18,6 +26,33 @@ app.use(express.json());
 
 app.get("/", (req, res) => {
   res.render("index");
+  // Check if downloads folder exists
+  if (!fs.existsSync("downloads"))
+    fs.mkdir("downloads", (err) => {
+      if (err) {
+        return console.error(err);
+      }
+    });
+  fs.readdir(downloadsDir, function (err, files) {
+    files.forEach(function (file, index) {
+      fs.stat(path.join(downloadsDir, file), function (err, stat) {
+        var endTime, now;
+        if (err) {
+          return console.error(err);
+        }
+        now = new Date().getTime();
+        endTime = new Date(stat.ctime).getTime() + 3600000;
+        if (now > endTime) {
+          return rimraf(path.join(downloadsDir, file), function (err) {
+            if (err) {
+              return console.error(err);
+            }
+            console.log("successfully deleted");
+          });
+        }
+      });
+    });
+  });
 });
 
 app.post("/", async (req, res) => {
@@ -32,6 +67,7 @@ app.post("/", async (req, res) => {
 });
 app.listen(port, () => {
   console.log(`this server is in port ${port}`);
+  console.log(__dirname);
 });
 
 const getSerieDownloadLink = async (url) => {
@@ -59,7 +95,6 @@ const getSerieDownloadLink = async (url) => {
       url = url.match(serieMatch)[1];
     }
     const linkToFile = await generatePdf(url, page);
-    // console.log("~ linkToFile", linkToFile);
     browser.close();
     if (!linkToFile) reject("Une erreur s'est produite: Pas de chapitre.");
     resolve(linkToFile);
@@ -71,13 +106,6 @@ const generatePdf = async (url, page) => {
     // Create a document PDF
     const doc = new PDFDocument();
 
-    // Check if downloads folder exists
-    if (!fs.existsSync("downloads"))
-      fs.mkdir("downloads", (err) => {
-        if (err) {
-          return console.error(err);
-        }
-      });
     await page.goto(url);
     let serieName = await page.evaluate(
       (el) => el.innerHTML,
@@ -154,7 +182,6 @@ const generatePdf = async (url, page) => {
       )} chapters`
     );
     doc.moveDown(0.5);
-
     doc.addPage();
     addSerieInfoToPdf(
       doc,
@@ -169,7 +196,15 @@ const generatePdf = async (url, page) => {
 
     // get the url of last table of content
     let lastTocUrl = url;
-    while ((await page.$("a[class='page-link next']")) !== null) {
+    while (
+      (await page.$("a[class='page-link next']")) &&
+      /\?toc/.test(
+        await page.evaluate(
+          (el) => el.href,
+          await page.$("a[class='page-link next']")
+        )
+      )
+    ) {
       await page.goto(
         await page.evaluate(
           (el) => el.href,
@@ -187,11 +222,11 @@ const generatePdf = async (url, page) => {
       (el) => el.href,
       firstChapterLink
     );
-    console.log("href of first Chapter", firstChapterHref);
-
     await page.goto(firstChapterHref);
+
     await addChapterContentToPdf(doc, page);
-    let index = 2;
+    let index = 1;
+    console.log(`href of index ${index} : ${firstChapterHref}`);
     while (await page.$("a[class='btn-wi btn-next']")) {
       let nextHref = await page.evaluate(
         (el) => el.href,
@@ -199,22 +234,22 @@ const generatePdf = async (url, page) => {
       );
       await page.goto(nextHref);
       await addChapterContentToPdf(doc, page);
-      console.log(`href of index ${index} : ${nextHref}`);
       index++;
+      console.log(`href of index ${index} : ${nextHref}`);
     }
 
     console.log("end of pdf");
     doc.end();
 
-    return (respnse = {
+    return {
       status: "Success",
       link: path.resolve(`./downloads/${serieName}.pdf`),
-    });
+    };
   } catch (err) {
-    return (response = {
+    return {
       status: "Error",
       Error: err,
-    });
+    };
   }
 };
 
