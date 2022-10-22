@@ -6,9 +6,9 @@ import cors from "cors";
 import PDFDocument from "pdfkit";
 import { convert } from "html-to-text";
 import axios from "axios";
-import findRemoveSync from "find-remove";
 import { fileURLToPath } from "url";
 import rimraf from "rimraf";
+import nodeCron from "node-cron";
 
 const __filename = fileURLToPath(import.meta.url);
 
@@ -33,26 +33,6 @@ app.get("/", (req, res) => {
         return console.error(err);
       }
     });
-  fs.readdir(downloadsDir, function (err, files) {
-    files.forEach(function (file, index) {
-      fs.stat(path.join(downloadsDir, file), function (err, stat) {
-        var endTime, now;
-        if (err) {
-          return console.error(err);
-        }
-        now = new Date().getTime();
-        endTime = new Date(stat.ctime).getTime() + 3600000;
-        if (now > endTime) {
-          return rimraf(path.join(downloadsDir, file), function (err) {
-            if (err) {
-              return console.error(err);
-            }
-            console.log("successfully deleted");
-          });
-        }
-      });
-    });
-  });
 });
 
 app.post("/", async (req, res) => {
@@ -68,6 +48,7 @@ app.post("/", async (req, res) => {
 app.listen(port, () => {
   console.log(`this server is in port ${port}`);
   console.log(__dirname);
+  nodeCron.schedule("*/5 * * * * ", deleteOldDownloadsFiles);
 });
 
 const getSerieDownloadLink = async (url) => {
@@ -308,4 +289,29 @@ const getChapterTitle = async (page) => {
 
 const getChapterContent = async (page) => {
   return await page.evaluate((el) => el.innerHTML, await page.$("#chp_raw"));
+};
+
+const deleteOldDownloadsFiles = () => {
+  const date = new Date();
+  console.log(`Execution of delete function at ${date.toLocaleString()}`);
+  fs.readdir(downloadsDir, function (err, files) {
+    files.forEach(function (file, index) {
+      fs.stat(path.join(downloadsDir, file), function (err, stat) {
+        var endTime, now;
+        if (err) {
+          return console.error(err);
+        }
+        now = new Date().getTime();
+        endTime = new Date(stat.ctime).getTime() + 3600000;
+        if (now > endTime) {
+          return rimraf(path.join(downloadsDir, file), function (err) {
+            if (err) {
+              return console.error(err);
+            }
+            console.log("successfully deleted");
+          });
+        }
+      });
+    });
+  });
 };
