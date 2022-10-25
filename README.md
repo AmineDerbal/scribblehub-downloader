@@ -1,57 +1,5 @@
 # scribblehub-downloader
 
-### EXTENSIONS
+### 
 
-code --install-extension adamsome.vscode-theme-gruvbox-minor
-code --install-extension akamud.vscode-theme-onedark
-code --install-extension barrsan.reui
-code --install-extension bhughes339.replacerules
-code --install-extension burkeholland.simple-react-snippets
-code --install-extension ChakrounAnas.turbo-console-log
-code --install-extension christian-kohler.npm-intellisense
-code --install-extension christian-kohler.path-intellisense
-code --install-extension ctf-vscode.scaffolder-vscode
-code --install-extension davidbwaters.macos-modern-theme
-code --install-extension dbaeumer.jshint
-code --install-extension dbaeumer.vscode-eslint
-code --install-extension donjayamanne.githistory
-code --install-extension dracula-theme.theme-dracula
-code --install-extension dsznajder.es7-react-js-snippets
-code --install-extension dustinsanders.an-old-hope-theme-vscode  
-code --install-extension dzannotti.vscode-babel-coloring
-code --install-extension eamodio.gitlens
-code --install-extension EditorConfig.EditorConfig
-code --install-extension Equinusocio.vsc-community-material-theme  
-code --install-extension Equinusocio.vsc-material-theme
-code --install-extension equinusocio.vsc-material-theme-icons  
-code --install-extension esbenp.prettier-vscode
-code --install-extension fabiospampinato.vscode-search-open-all-results  
-code --install-extension flowtype.flow-for-vscode
-code --install-extension jdinhlife.gruvbox
-code --install-extension lei.theme-chromodynamics
-code --install-extension lkytal.FlatUI
-code --install-extension lokalise.i18n-ally
-code --install-extension mgmcdermott.vscode-language-babel
-code --install-extension mikestead.dotenv
-code --install-extension monokai.theme-monokai-pro-vscode
-code --install-extension ms-azuretools.vscode-docker
-code --install-extension ms-python.python
-code --install-extension ms-python.vscode-pylance
-code --install-extension ms-vscode-remote.remote-containers
-code --install-extension ms-vscode-remote.remote-wsl
-code --install-extension ms-vscode.js-debug-nightly
-code --install-extension ms-vscode.vscode-typescript-next
-code --install-extension msjsdiag.vscode-react-native
-code --install-extension oderwat.indent-rainbow
-code --install-extension paulshen.paul-typescript-toolkit
-code --install-extension Prisma.prisma
-code --install-extension sainnhe.gruvbox-material
-code --install-extension SirTori.indenticator
-code --install-extension stevencl.addDocComments
-code --install-extension teabyii.ayu
-code --install-extension viktorqvarfordt.vscode-pitch-black-theme  
-code --install-extension wicked-labs.wvsc-serendipity
-code --install-extension wix.vscode-import-cost
-code --install-extension xabikos.JavaScriptSnippets
-code --install-extension zenclabs.previewjs
-code --install-extension zhuangtongfa.material-theme
+
