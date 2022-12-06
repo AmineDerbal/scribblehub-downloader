@@ -39,9 +39,17 @@ urlSubmitButton.addEventListener("click", async (e) => {
     ficInformations.appendChild(pdfLink);
     const pdfspan = document.createElement("span");
     pdfspan.textContent = "pdf Link : ";
+    const pdfImage = document.createElement("img");
+    pdfImage.src =
+      "../images/15399621-pdf-file-download-icon-vector-illustration.webp";
     const link = document.createElement("a");
     link.href = response.link;
-    link.textContent = link;
+    // link.addEventListener("click", () => {
+    //   window.open(link.href, "_blank");
+    // });
+    link.setAttribute("download", "");
+    //link.textContent = link;
+    link.appendChild(pdfImage);
     pdfLink.appendChild(pdfspan);
     pdfLink.appendChild(link);
 

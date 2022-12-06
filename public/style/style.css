@@ -20,3 +20,6 @@ input[type="text"] {
   /* prevent overflow of container */
   max-width: 100%;
 }
+img {
+  width: 5rem;
+}

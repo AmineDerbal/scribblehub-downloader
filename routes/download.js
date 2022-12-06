@@ -27,6 +27,12 @@ router.get("/", async (req, res) => {
   res.json(progress);
 });
 
+router.get("/:filename", (req, res) => {
+  //link: path.resolve(`./downloads/${progress.serieName}.pdf`),
+
+  const filePath = path.resolve(`./downloads/${req.params.filename}`);
+  res.download(filePath);
+});
 router.post("/", async (req, res) => {
   const url = req.body.url;
   console.log("the url", url);
@@ -216,7 +222,11 @@ const generatePdf = async (url, page) => {
 
     return {
       status: "Success",
-      link: path.resolve(`./downloads/${progress.serieName}.pdf`),
+      //link: path.resolve(`./downloads/${progress.serieName}.pdf`),
+      link: `http://localhost:3000/download/${progress.serieName.replace(
+        /[^a-zA-Z0-9 ]/g,
+        ""
+      )}.pdf`,
     };
   } catch (err) {
     return {
