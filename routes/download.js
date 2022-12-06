@@ -7,18 +7,12 @@ const axios = require("axios");
 const path = require("path");
 const router = express.Router();
 
-const progress = {
-  serieName: "UNKNOWN",
-  authorName: "UNKNOWN",
-  lastUpdate: "UNKNOWN",
-  numberOfChapter: 0,
-  currentProgress: 0,
-};
+const progress = {};
 
 const clearProgress = () => {
-  progress.serieName = "UNKNOWN";
-  progress.authorName = "UNKNOWN";
-  progress.lastUpdate = "UNKNOWN";
+  progress.serieName = "";
+  progress.authorName = "";
+  progress.lastUpdate = "";
   progress.numberOfChapter = 0;
   progress.currentProgress = 0;
 };

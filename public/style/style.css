@@ -15,11 +15,37 @@ html {
 
 input[type="text"] {
   /* Set width to 40characters */
-  width: 50rem;
+
+  width: 40rem;
 
   /* prevent overflow of container */
-  max-width: 100%;
 }
 img {
-  width: 5rem;
+  width: 3rem;
+}
+
+#fic-informations {
+  margin: 3rem 0;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  justify-content: center;
+}
+.input-url {
+  width: 100%;
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+@media (width <= 700px) {
+  .input-url {
+    flex-direction: column;
+    width: 100%;
+  }
+  input[type="text"] {
+    width: 100%;
+  }
 }

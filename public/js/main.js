@@ -44,11 +44,7 @@ urlSubmitButton.addEventListener("click", async (e) => {
       "../images/15399621-pdf-file-download-icon-vector-illustration.webp";
     const link = document.createElement("a");
     link.href = response.link;
-    // link.addEventListener("click", () => {
-    //   window.open(link.href, "_blank");
-    // });
     link.setAttribute("download", "");
-    //link.textContent = link;
     link.appendChild(pdfImage);
     pdfLink.appendChild(pdfspan);
     pdfLink.appendChild(link);
@@ -94,9 +90,7 @@ const post = async (url) => {
 
 const getProgress = async () => {
   const dataStream = await fetch("./download");
-  // console.log("dataStream", dataStream);
   const data = await dataStream.json();
-  //console.log("data", data);
 
   if (document.getElementById("name").textContent != data.serieName) {
     document.getElementById("name").textContent = data.serieName;
@@ -137,7 +131,7 @@ const buildFicInformationLayout = () => {
   ficInformations.appendChild(ficName);
   const name = document.createElement("span");
   name.id = "name";
-  name.textContent = "UNKNOWN";
+  name.textContent = "";
   ficName.appendChild(name);
 
   const ficAuthor = document.createElement("div");
@@ -146,7 +140,7 @@ const buildFicInformationLayout = () => {
   ficInformations.appendChild(ficAuthor);
   const author = document.createElement("span");
   author.id = "author";
-  author.textContent = "UNKNOWN";
+  author.textContent = "";
   ficAuthor.appendChild(author);
 
   const ficUpdate = document.createElement("div");
@@ -155,7 +149,7 @@ const buildFicInformationLayout = () => {
   ficInformations.appendChild(ficUpdate);
   const update = document.createElement("span");
   update.id = "update";
-  update.textContent = "UNKNOWN";
+  update.textContent = "";
   ficUpdate.appendChild(update);
 
   const ficNumberOfChapter = document.createElement("div");
