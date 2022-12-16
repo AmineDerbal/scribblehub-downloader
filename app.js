@@ -36,7 +36,7 @@ const deleteOldDownloadsFiles = () => {
           return console.error(err);
         }
         now = new Date().getTime();
-        endTime = new Date(stat.ctime).getTime() + 3600000;
+        endTime = new Date(stat.mtime).getTime() + 3600000;
         if (now > endTime) {
           return rimraf(path.join(downloadsDir, file), function (err) {
             if (err) {
