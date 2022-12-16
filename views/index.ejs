@@ -14,16 +14,34 @@
     <title>Scribblehub downloader</title>
   </head>
   <body>
-    <header class="header">
-      <header class="title">
+    <header id="header">
+      <div class="title">
         <h1>ScribbleHub Downloader</h1>
-      </header>
-      <div class="input-url">
-        <input type="text" value="" id="url" placeholder="type an url" />
-        <button class="submit">Search</button>
       </div>
+      <div class="input-url">
+        <input
+          type="text"
+          value=""
+          id="url"
+          placeholder="type a ScribbleHub url"
+        />
+        <button class="submit">Download</button>
+      </div>
+      <div id="error-url"></div>
     </header>
     <div id="fic-informations"></div>
+    <footer id="footer">
+      <div>
+        Powered by
+        <a href="https://pptr.dev/"
+          ><img src="images/puppeteer-logo-254C5F1692-seeklogo.com.png" alt=""
+        /></a>
+        |
+        <a href="https://github.com/AmineDerbal/scribblehub-downloader"
+          ><img class="rotate-icon" src="images/25231.png" alt=""
+        /></a>
+      </div>
+    </footer>
     <script src="js/main.js"></script>
     <script
       src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.2/dist/js/bootstrap.bundle.min.js"

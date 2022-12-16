@@ -1,6 +1,7 @@
 const urlSubmitButton = document.querySelector(".submit");
 const url = document.getElementById("url");
 const ficInformations = document.getElementById("fic-informations");
+const urlError = document.getElementById("error-url");
 let current = "";
 
 urlSubmitButton.addEventListener("click", async (e) => {
@@ -8,19 +9,14 @@ urlSubmitButton.addEventListener("click", async (e) => {
   current = 0;
   if (url.value == "") return;
   if (!testUrl(url.value)) {
-    console.log("give a valide url");
+    urlError.textContent = "please enter a valid ScribbleHub link!";
   } else {
-    console.log("valid url");
-
-    console.log("url", url.value);
+    if (urlError.textContent != "") urlError.textContent = "";
     if (ficInformations.childNodes.length != 0) {
       ficInformations.innerHTML = "";
     }
     buildFicInformationLayout();
-
     const response = await post(url);
-    //console.log(response);
-
     if (response.status == "Error") {
       console.log("Error : ", response.Error);
       return;
@@ -37,17 +33,23 @@ urlSubmitButton.addEventListener("click", async (e) => {
     const pdfLink = document.createElement("div");
     pdfLink.id = "pdf-link";
     ficInformations.appendChild(pdfLink);
-    const pdfspan = document.createElement("span");
-    pdfspan.textContent = "pdf Link : ";
+    const pdftitle = document.createElement("p");
+    pdftitle.className = "fic-informations-head";
+    pdftitle.textContent = "pdf Link : ";
     const pdfImage = document.createElement("img");
+    pdfImage.id = "pdf-image";
     pdfImage.src =
       "../images/15399621-pdf-file-download-icon-vector-illustration.webp";
     const link = document.createElement("a");
     link.href = response.link;
     link.setAttribute("download", "");
     link.appendChild(pdfImage);
-    pdfLink.appendChild(pdfspan);
-    pdfLink.appendChild(link);
+    pdfLink.appendChild(pdftitle);
+    pdftitle.appendChild(link);
+    const pdfLinkReminder = document.createElement("span");
+    pdfLinkReminder.textContent =
+      " This link will be available only for the next hour";
+    pdftitle.appendChild(pdfLinkReminder);
 
     console.log(response);
   }
@@ -69,18 +71,13 @@ const post = async (url) => {
   };
   try {
     console.log("sending data");
-    console.log(JSON.parse(options.body).url);
     let interval = setInterval(async () => {
       await getProgress();
     }, 500);
-    console.log("option", options);
-    const urlStream = await fetch("/download", options);
-    console.log("done");
-    //console.log(urlStream);
 
+    const urlStream = await fetch("/download", options);
     const urlData = await urlStream.json();
     console.log("fetching data");
-    //console.log(urlData);
     clearInterval(interval);
     return urlData;
   } catch (err) {
@@ -107,12 +104,9 @@ const getProgress = async () => {
     numberOfChapter.textContent = data.numberOfChapter;
   }
   if (current != data.currentProgress) {
-    console.log("current", current);
-    console.log("data current", data.currentProgress);
     const progressBar = document.getElementById("progress-bar");
     current = data.currentProgress;
     let progressBarValue = parseInt((current * 99) / data.numberOfChapter);
-    console.log("progress value", progressBarValue);
     progressBar.setAttribute("aria-valuenow", progressBarValue);
     progressBar.style.width = `${progressBarValue}%`;
     if (progressBarValue > 50) {
@@ -126,7 +120,7 @@ const getProgress = async () => {
 
 const buildFicInformationLayout = () => {
   const ficName = document.createElement("div");
-  ficName.id = "fic-name";
+  ficName.className = "fic-informations-head";
   ficName.textContent = "Fiction Name : ";
   ficInformations.appendChild(ficName);
   const name = document.createElement("span");
@@ -135,7 +129,7 @@ const buildFicInformationLayout = () => {
   ficName.appendChild(name);
 
   const ficAuthor = document.createElement("div");
-  ficAuthor.id = "fic-author";
+  ficAuthor.className = "fic-informations-head";
   ficAuthor.textContent = "Fiction Author : ";
   ficInformations.appendChild(ficAuthor);
   const author = document.createElement("span");
@@ -144,7 +138,7 @@ const buildFicInformationLayout = () => {
   ficAuthor.appendChild(author);
 
   const ficUpdate = document.createElement("div");
-  ficUpdate.id = "fic-update";
+  ficUpdate.className = "fic-informations-head";
   ficUpdate.textContent = "Last Updated : ";
   ficInformations.appendChild(ficUpdate);
   const update = document.createElement("span");
@@ -153,7 +147,7 @@ const buildFicInformationLayout = () => {
   ficUpdate.appendChild(update);
 
   const ficNumberOfChapter = document.createElement("div");
-  ficNumberOfChapter.id = "fic-number-of-chapter";
+  ficNumberOfChapter.className = "fic-informations-head";
   ficNumberOfChapter.textContent = "Number of Chapter : ";
   ficInformations.appendChild(ficNumberOfChapter);
   const numberOfChapter = document.createElement("span");

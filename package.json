@@ -29,10 +29,10 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/kyu931/scribblehub-downloader.git"
+    "url": "git+https://github.com/AmineDerbal/scribblehub-downloader.git"
   },
   "bugs": {
-    "url": "https://github.com/kyu931/scribblehub-downloader/issues"
+    "url": "https://github.com/AmineDerbal/scribblehub-downloader/issues"
   },
-  "homepage": "https://github.com/kyu931/scribblehub-downloader#readme"
+  "homepage": "https://github.com/AmineDerbal/scribblehub-downloader#readme"
 }
