@@ -19,6 +19,7 @@ urlSubmitButton.addEventListener("click", async (e) => {
     const response = await post(url);
     if (response.status == "Error") {
       console.log("Error : ", response.Error);
+      location.replace("/error");
       return;
     }
     const progressBar = document.getElementById("progress-bar");

@@ -35,12 +35,12 @@ router.post("/", async (req, res) => {
     const downloadLink = await getSerieDownloadLink(url);
     res.json(downloadLink);
   } catch (err) {
-    res.send(`Une erreur s'est produite: ${err}`);
+    res.json({ status: "Error", Error: err });
   }
 });
 
 const getSerieDownloadLink = async (url) => {
-  return new Promise(async (resolve, reject) => {
+  try {
     const browser = await puppeteer.launch();
     const page = await browser.newPage();
     await page.setUserAgent(
@@ -51,10 +51,12 @@ const getSerieDownloadLink = async (url) => {
       waitUntil: "domcontentloaded",
       timeout: 0,
     });
+
     if (response.status() != 200) {
-      console.log("fail");
-      reject(response.status());
-      return;
+      return {
+        status: "Error",
+        Error: "an error has occured",
+      };
     }
 
     // if the url of given has read as a path
@@ -74,9 +76,14 @@ const getSerieDownloadLink = async (url) => {
     }
     const linkToFile = await generatePdf(url, page);
     browser.close();
-    if (!linkToFile) reject("Une erreur s'est produite: Pas de chapitre.");
-    resolve(linkToFile);
-  });
+    // if (!linkToFile) reject("Une erreur s'est produite: Pas de chapitre.");
+    return linkToFile;
+  } catch (err) {
+    return {
+      status: "Error",
+      Error: err,
+    };
+  }
 };
 
 const generatePdf = async (url, page) => {

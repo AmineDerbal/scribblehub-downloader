@@ -10,6 +10,7 @@ const downloadsDir = __dirname + "/downloads";
 
 let indexRouter = require("./routes/index");
 let downloadRouter = require("./routes/download");
+let errorRouter = require("./routes/error");
 
 app.set("view engine", "ejs");
 app.use(express.static("public"));
@@ -18,6 +19,7 @@ app.use(express.json());
 
 app.use("/", indexRouter);
 app.use("/download", downloadRouter);
+app.use("/error", errorRouter);
 
 app.listen(port, () => {
   console.log(`this server is in port ${port}`);
