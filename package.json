@@ -21,6 +21,8 @@
     "node-fetch": "^2.6.7",
     "pdfkit": "^0.13.0",
     "puppeteer": "^18.0.5",
+    "puppeteer-extra": "^3.3.6",
+    "puppeteer-extra-plugin-stealth": "^2.11.2",
     "rimraf": "^3.0.2"
   },
   "devDependencies": {
