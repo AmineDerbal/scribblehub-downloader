@@ -1,4 +1,4 @@
-@import url("https://fonts.googleapis.com/css2?family=Fredoka:wght@300;500&family=Inter:wght@300&family=Lato:wght@700&family=Montserrat:ital@1&family=Roboto+Serif:opsz,wght@8..144,200&display=swap");
+@import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@300;500&family=Inter:wght@300&family=Lato:wght@700&family=Montserrat:ital@1&family=Roboto+Serif:opsz,wght@8..144,200&display=swap');
 html,
 body {
   padding: 0;
@@ -19,7 +19,7 @@ body {
   gap: 0.5rem;
 }
 
-input[type="text"] {
+input[type='text'] {
   /* Set width to 40characters */
 
   width: 40rem;
@@ -28,7 +28,7 @@ input[type="text"] {
 }
 #error-url {
   color: red;
-  font-family: "Fredoka", sans-serif;
+  font-family: 'Fredoka', sans-serif;
   font-size: medium;
 }
 #pdf-image {
@@ -41,7 +41,6 @@ input[type="text"] {
   flex-direction: column;
   width: 100%;
   justify-content: center;
-  padding: 0 1rem;
 }
 .input-url {
   width: 100%;
@@ -52,16 +51,18 @@ input[type="text"] {
   gap: 0.5rem;
 }
 .fic-informations-head {
-  font-family: "Fredoka", sans-serif;
+  font-family: 'Fredoka', sans-serif;
   font-size: large;
+  padding: 0 1rem;
 }
 
 .fic-informations-head span {
-  font-family: "Quicksand", sans-serif;
+  font-family: 'Quicksand', sans-serif;
 }
 .progress {
   height: 2rem;
 }
+
 small {
   font-size: medium;
 }
@@ -75,7 +76,7 @@ footer {
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  font-family: "Inter", sans-serif;
+  font-family: 'Inter', sans-serif;
   font-size: 3rem;
   font-weight: 900;
 }
@@ -88,7 +89,7 @@ footer img {
     flex-direction: column;
     width: 100%;
   }
-  input[type="text"] {
+  input[type='text'] {
     width: 90%;
   }
 }
@@ -100,7 +101,7 @@ footer img {
   transition: transform 2s ease-in-out;
 }
 
-@import url("https://fonts.googleapis.com/css2?family=Roboto&display=swap");
+@import url('https://fonts.googleapis.com/css2?family=Roboto&display=swap');
 .main-error-page {
   min-height: 600px;
   margin: 0px auto;
