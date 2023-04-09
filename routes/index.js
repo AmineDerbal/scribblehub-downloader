@@ -1,17 +1,17 @@
-const express = require("express");
-const fs = require("fs");
-const { dirname } = require("path");
-const router = express.Router();
+import { Router } from 'express';
+import { existsSync, mkdir } from 'fs';
+import { dirname } from 'path';
+const router = Router();
 
-router.get("/", (req, res) => {
-  res.render("index");
+router.get('/', (req, res) => {
+  res.render('index');
   // Check if downloads folder exists
-  if (!fs.existsSync("downloads"))
-    fs.mkdir("downloads", (err) => {
+  if (!existsSync('downloads'))
+    mkdir('downloads', (err) => {
       if (err) {
         return console.error(err);
       }
     });
 });
 
-module.exports = router;
+export default router;

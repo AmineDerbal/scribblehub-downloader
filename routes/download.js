@@ -1,15 +1,16 @@
-const express = require('express');
-const puppeteer = require('puppeteer-extra');
-const fs = require('fs');
-const PDFDocument = require('pdfkit');
-const { convert } = require('html-to-text');
-const axios = require('axios');
-const path = require('path');
-const router = express.Router();
-const StealthPlugin = require('puppeteer-extra-plugin-stealth');
-puppeteer.use(StealthPlugin());
-const { executablePath } = require('puppeteer');
+import express from 'express';
+import puppeteer from 'puppeteer-extra';
+import fs from 'fs';
+import PDFDocument from 'pdfkit';
+import { convert } from 'html-to-text';
+import axios from 'axios';
+import path from 'path';
+import StealthPlugin from 'puppeteer-extra-plugin-stealth';
 
+import { executablePath } from 'puppeteer';
+
+puppeteer.use(StealthPlugin());
+const router = express.Router();
 const progress = {};
 
 const clearProgress = () => {
@@ -291,4 +292,4 @@ const parseHtmlContentToPdf = async (doc, page, parent, firstChild) => {
   }
 };
 
-module.exports = router;
+export default router;

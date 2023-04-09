@@ -1,30 +1,38 @@
-const express = require("express");
+import express from 'express';
 const app = express();
-const fs = require("fs");
-const rimraf = require("rimraf");
-const nodeCron = require("node-cron");
-const cors = require("cors");
-const path = require("path");
+import fs from 'fs';
+import rimraf from 'rimraf';
+import nodeCron from 'node-cron';
+import cors from 'cors';
+import path from 'path';
 const port = 3000;
-const downloadsDir = __dirname + "/downloads";
+import { fileURLToPath } from 'url';
+import indexRouter from './routes/index.js';
+import downloadRouter from './routes/download.js';
+import errorRouter from './routes/error.js';
 
-let indexRouter = require("./routes/index");
-let downloadRouter = require("./routes/download");
-let errorRouter = require("./routes/error");
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const downloadsDir = `${__dirname}/downloads`;
+// const downloadsDir = __dirname + '/downloads';
 
-app.set("view engine", "ejs");
-app.use(express.static("public"));
+// let indexRouter = require('./routes/index');
+// let downloadRouter = require('./routes/download');
+// let errorRouter = require('./routes/error');
+
+app.set('view engine', 'ejs');
+app.use(express.static('public'));
 app.use(cors());
 app.use(express.json());
 
-app.use("/", indexRouter);
-app.use("/download", downloadRouter);
-app.use("/error", errorRouter);
+app.use('/', indexRouter);
+app.use('/download', downloadRouter);
+app.use('/error', errorRouter);
 
 app.listen(port, () => {
   console.log(`this server is in port ${port}`);
   console.log(__dirname);
-  nodeCron.schedule("*/5 * * * * ", deleteOldDownloadsFiles);
+  nodeCron.schedule('*/5 * * * * ', deleteOldDownloadsFiles);
 });
 
 const deleteOldDownloadsFiles = () => {
@@ -44,7 +52,7 @@ const deleteOldDownloadsFiles = () => {
             if (err) {
               return console.error(err);
             }
-            console.log("successfully deleted");
+            console.log('successfully deleted');
           });
         }
       });
