@@ -14,11 +14,6 @@ import errorRouter from './routes/error.js';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const downloadsDir = `${__dirname}/downloads`;
-// const downloadsDir = __dirname + '/downloads';
-
-// let indexRouter = require('./routes/index');
-// let downloadRouter = require('./routes/download');
-// let errorRouter = require('./routes/error');
 
 app.set('view engine', 'ejs');
 app.use(express.static('public'));

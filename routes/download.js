@@ -84,7 +84,6 @@ const getSerieDownloadLink = async (url) => {
     }
     const linkToFile = await generatePdf(url, page);
     browser.close();
-    // if (!linkToFile) reject("Une erreur s'est produite: Pas de chapitre.");
     return linkToFile;
   } catch (err) {
     console.log(err);
