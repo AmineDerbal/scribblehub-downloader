@@ -1,3 +1,5 @@
+import testUrl from './modules/url.js';
+
 const urlSubmitButton = document.querySelector('.submit');
 const url = document.getElementById('url');
 const ficInformations = document.getElementById('fic-informations');
@@ -54,10 +56,6 @@ urlSubmitButton.addEventListener('click', async (e) => {
   }
 });
 
-const testUrl = (url) => {
-  let urlRegex = /^(https?:\/\/www\.scribblehub\.com\/(read|series)\/(\w|\W))/;
-  return urlRegex.test(url);
-};
 const post = async (url) => {
   const options = {
     method: 'POST',
