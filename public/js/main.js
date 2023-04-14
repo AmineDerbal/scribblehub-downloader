@@ -1,14 +1,13 @@
-import testUrl from './modules/url.js';
+import { testUrl, postNovelUrl } from './modules/url.js';
 
 const urlSubmitButton = document.querySelector('.submit');
 const url = document.getElementById('url');
 const ficInformations = document.getElementById('fic-informations');
 const urlError = document.getElementById('error-url');
-let current = '';
 
 urlSubmitButton.addEventListener('click', async (e) => {
   e.preventDefault();
-  current = 0;
+  let current = 0;
   if (url.value == '') return;
   if (!testUrl(url.value)) {
     urlError.textContent = 'please enter a valid ScribbleHub link!';
@@ -18,7 +17,7 @@ urlSubmitButton.addEventListener('click', async (e) => {
       ficInformations.innerHTML = '';
     }
     buildFicInformationLayout();
-    const response = await post(url);
+    const response = await postNovelUrl(url, current);
     if (response.status == 'Error') {
       console.log('Error : ', response.Error);
       location.replace('/error');
@@ -55,65 +54,6 @@ urlSubmitButton.addEventListener('click', async (e) => {
     console.log(response);
   }
 });
-
-const post = async (url) => {
-  const options = {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      url: url.value,
-    }),
-  };
-  try {
-    console.log('sending data');
-    let interval = setInterval(async () => {
-      await getProgress();
-    }, 500);
-
-    const urlStream = await fetch('/download', options);
-    const urlData = await urlStream.json();
-    console.log('fetching data');
-    clearInterval(interval);
-    return urlData;
-  } catch (err) {
-    return { Error: err, status: 'Error' };
-  }
-};
-
-const getProgress = async () => {
-  const dataStream = await fetch('./download');
-  const data = await dataStream.json();
-
-  if (document.getElementById('name').textContent != data.serieName) {
-    document.getElementById('name').textContent = data.serieName;
-  }
-  if (document.getElementById('author').textContent != data.authorName) {
-    document.getElementById('author').textContent = data.authorName;
-  }
-  if (document.getElementById('update').textContent != data.lastUpdate) {
-    document.getElementById('update').textContent = data.lastUpdate;
-  }
-
-  let numberOfChapter = document.getElementById('number-of-chapter');
-  if (numberOfChapter.textContent != data.numberOfChapter) {
-    numberOfChapter.textContent = data.numberOfChapter;
-  }
-  if (current != data.currentProgress) {
-    const progressBar = document.getElementById('progress-bar');
-    current = data.currentProgress;
-    let progressBarValue = parseInt((current * 99) / data.numberOfChapter);
-    progressBar.setAttribute('aria-valuenow', progressBarValue);
-    progressBar.style.width = `${progressBarValue}%`;
-    if (progressBarValue > 50) {
-      document.getElementById('small').style.color = '#fff';
-    }
-    document.getElementById(
-      'small',
-    ).textContent = `${progressBarValue}% - Downloading chapter ${current}`;
-  }
-};
 
 const buildFicInformationLayout = () => {
   const ficName = document.createElement('div');
