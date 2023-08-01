@@ -49,7 +49,8 @@ const getSerieDownloadLink = async (url) => {
       'user-agent':
         'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/108.0.0.0 Safari/537.36',
       'upgrade-insecure-requests': '1',
-      accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8',
+      accept:
+        'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8',
       'accept-encoding': 'gzip, deflate, br',
       'accept-language': 'en-US,en;q=0.9,en;q=0.8',
     });
@@ -105,7 +106,9 @@ const generatePdf = async (url, page) => {
 
     // Pipe its output somewhere, like to a file or HTTP response
     // See below for browser usage
-    doc.pipe(fs.createWriteStream(`./downloads/${progress.serieName.replace(/[^a-zA-Z0-9 ]/g, '')}.pdf`));
+    doc.pipe(
+      fs.createWriteStream(`./downloads/${progress.serieName.replace(/[^a-zA-Z0-9 ]/g, '')}.pdf`),
+    );
 
     // write the book infos in the PDF Document
     doc.font('Times-Bold').fontSize(35).text(progress.serieName, {
@@ -131,12 +134,23 @@ const generatePdf = async (url, page) => {
     doc.moveDown(0.5);
     addSerieInfoToPdf(doc, 'Serie Link : ', url, 16, 'blue');
     doc.moveDown(0.5);
-    addSerieInfoToPdf(doc, 'Author Link : ', await page.$eval("span[property='name'] a", (el) => el.href), 16, 'blue');
+    addSerieInfoToPdf(
+      doc,
+      'Author Link : ',
+      await page.$eval("span[property='name'] a", (el) => el.href),
+      16,
+      'blue',
+    );
     doc.moveDown(0.5);
-    progress.lastUpdate = await page.$eval('.toc_ol:first-child .fic_date_pub', (el) => el.textContent);
+    progress.lastUpdate = await page.$eval(
+      '.toc_ol:first-child .fic_date_pub',
+      (el) => el.textContent,
+    );
     addSerieInfoToPdf(doc, 'Last Update : ', progress.lastUpdate);
     doc.moveDown(0.5);
-    progress.numberOfChapter = parseInt(await page.$eval('.toc_ol :first-child ', (el) => el.getAttribute('order')));
+    progress.numberOfChapter = parseInt(
+      await page.$eval('.toc_ol :first-child ', (el) => el.getAttribute('order')),
+    );
     addSerieInfoToPdf(doc, 'number of chapters : ', `${progress.numberOfChapter} chapters`);
     doc.moveDown(0.5);
     doc.addPage();
@@ -189,7 +203,7 @@ const generatePdf = async (url, page) => {
 
     return {
       status: 'Success',
-      link: `http://localhost:3000/download/${progress.serieName.replace(/[^a-zA-Z0-9 ]/g, '')}.pdf`,
+      link: `/download/${progress.serieName.replace(/[^a-zA-Z0-9 ]/g, '')}.pdf`,
     };
   } catch (err) {
     return {
