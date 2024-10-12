@@ -12,10 +12,11 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "axios": "^1.1.2",
+    "axios": "^1.7.7",
     "cors": "^2.8.5",
-    "ejs": "^3.1.8",
-    "express": "^4.18.1",
+    "dompurify": ">=2.5.4",
+    "ejs": "^3.1.10",
+    "express": "^4.21.1",
     "html-to-text": "^8.2.1",
     "jspdf": "^2.5.1",
     "node-cron": "^3.0.2",
@@ -24,7 +25,8 @@
     "puppeteer": "^18.0.5",
     "puppeteer-extra": "^3.3.6",
     "puppeteer-extra-plugin-stealth": "^2.11.2",
-    "rimraf": "^3.0.2"
+    "rimraf": "^3.0.2",
+    "scribblehub-downloader": "file:"
   },
   "devDependencies": {
     "@babel/preset-env": "^7.19.3",
