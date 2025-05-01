@@ -258,7 +258,6 @@ const generatePdf = async (url, page, selectedChapters) => {
       }
   };
 
-    // Iterate through batches of 10 chapters
     for (let i = 0; i < filteredChapterLinks.length; i += 10) {
       await processBatch(i);
 
