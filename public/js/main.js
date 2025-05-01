@@ -4,25 +4,50 @@ const urlSubmitButton = document.querySelector('.submit');
 const url = document.getElementById('url');
 const ficInformations = document.getElementById('fic-informations');
 const urlError = document.getElementById('error-url');
+const chapterStart = document.getElementById('chapterStart');
+const chapterFinish = document.getElementById('chapterFinish');
 
 urlSubmitButton.addEventListener('click', async (e) => {
   e.preventDefault();
   let current = 0;
+
   if (url.value == '') return;
+
+  // Check if the URL is valid
   if (!testUrl(url.value)) {
-    urlError.textContent = 'please enter a valid ScribbleHub link!';
+    urlError.textContent = 'Please enter a valid ScribbleHub link!';
   } else {
     if (urlError.textContent != '') urlError.textContent = '';
+    
+    // Clear previous information if any
     if (ficInformations.childNodes.length != 0) {
       ficInformations.innerHTML = '';
     }
+
+    // Build the layout for the fic information
     buildFicInformationLayout();
-    const response = await postNovelUrl(url, current);
-    if (response.status == 'Error') {
-      console.log('Error : ', response.Error);
-      location.replace('/error');
-      return;
+
+
+
+    // Create an array for chapters if both chapterStart and chapterFinish are provided
+    const chapters = [];
+    if (chapterStart && chapterFinish) {
+      for (let i = parseInt(chapterStart); i <= parseInt(chapterFinish); i++) {
+        chapters.push(i);
+      }
+    } else if (chapterStart) {
+      chapters.push(parseInt(chapterStart));
     }
+
+    // Send the URL and chapters to the backend
+    console.log(url.value,chapterStart.value,chapterFinish.value)
+    const response = await postNovelUrl(url, current,chapterStart,chapterFinish);
+
+    if (response.status == 'Error') {
+      console.log('Error: ', response.Error);
+    }
+
+    // Update the progress bar
     const progressBar = document.getElementById('progress-bar');
     const small = document.getElementById('small');
     progressBar.setAttribute('aria-valuenow', '100');
@@ -32,12 +57,13 @@ urlSubmitButton.addEventListener('click', async (e) => {
     }
     small.textContent = '100% - Finished';
 
+    // Create the download link
     const pdfLink = document.createElement('div');
     pdfLink.id = 'pdf-link';
     ficInformations.appendChild(pdfLink);
     const pdftitle = document.createElement('p');
     pdftitle.className = 'fic-informations-head';
-    pdftitle.textContent = 'pdf Link : ';
+    pdftitle.textContent = 'PDF Link: ';
     const pdfImage = document.createElement('img');
     pdfImage.id = 'pdf-image';
     pdfImage.src = '../images/15399621-pdf-file-download-icon-vector-illustration.webp';
@@ -54,6 +80,7 @@ urlSubmitButton.addEventListener('click', async (e) => {
     console.log(response);
   }
 });
+
 
 const buildFicInformationLayout = () => {
   const ficName = document.createElement('div');
