@@ -16,6 +16,12 @@ Install all the packages you need by running the command in your terminal.
 To start the server, after that access the index web page by this [Address](http://localhost:3000/) 
 
 
+### Notes
+- Ive coded it to output a pdf for every 10 chapters. Because scribblehub throttles after the 12th or 13th chapter..
+
+- Because of the throttling from scribblehub, bypassing it with more calls will add 10s(every10chapters) + 3s delay(if chapter pull is rejected) will still complete download of all chapters.
+
+- Only generates synposis + novel header when generating from chapter 1. in the form input.
 
 
 

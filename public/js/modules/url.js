@@ -5,7 +5,7 @@ export const testUrl = (url) => {
   return urlRegex.test(url);
 };
 
-export const postNovelUrl = async (url, current) => {
+export const postNovelUrl = async (url, current,chapterStart,chapterFinish) => {
   const options = {
     method: 'POST',
     headers: {
@@ -13,8 +13,11 @@ export const postNovelUrl = async (url, current) => {
     },
     body: JSON.stringify({
       url: url.value,
+      chapterStart:chapterStart.value,
+      chapterFinish:chapterFinish.value,
     }),
   };
+
   try {
     console.log('sending data');
     let interval = setInterval(async () => {

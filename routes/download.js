@@ -8,6 +8,7 @@ import path from 'path';
 import StealthPlugin from 'puppeteer-extra-plugin-stealth';
 
 import { executablePath } from 'puppeteer';
+import { verify } from 'crypto';
 
 puppeteer.use(StealthPlugin());
 const router = express.Router();
@@ -29,61 +30,76 @@ router.get('/:filename', (req, res) => {
   const filePath = path.resolve(`./downloads/${req.params.filename}`);
   res.download(filePath);
 });
+
 router.post('/', async (req, res) => {
   const url = req.body.url;
-  console.log('the url', url);
+  const chapterS = req.body.chapterStart; // chapters will be provided as a string (e.g. "1,2,5-7")
+  const chapterF = req.body.chapterFinish
+  console.log('The URL:', url);
+  console.log('Selected Chapters:', chapterS,chapterF);
+  
   clearProgress();
+  const start = parseInt(chapterS);
+  const end = parseInt(chapterF);
+
   try {
-    const downloadLink = await getSerieDownloadLink(url);
+    // Directly generate the array of chapters from chapterS to chapterF
+    const selectedChapters = Array.from({ length: end - start + 1 }, (_, index) => start + index);
+    if (!selectedChapters.length) {
+      throw new Error('No valid chapters selected');
+    }
+
+    // Get the download link for the series
+    const downloadLink = await getSerieDownloadLink(url, selectedChapters);
     res.json(downloadLink);
   } catch (err) {
     res.json({ status: 'Error', Error: err });
   }
 });
 
-const getSerieDownloadLink = async (url) => {
+const getSerieDownloadLink = async (url, selectedChapters) => {
   try {
     const browser = await puppeteer.launch({ executablePath: executablePath() });
     const page = await browser.newPage();
     await page.setExtraHTTPHeaders({
-      'user-agent':
-        'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/108.0.0.0 Safari/537.36',
+      'user-agent': 'Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/108.0.0.0 Safari/537.36',
       'upgrade-insecure-requests': '1',
-      accept:
-        'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8',
+      accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8',
       'accept-encoding': 'gzip, deflate, br',
       'accept-language': 'en-US,en;q=0.9,en;q=0.8',
     });
     await page.setViewport({ width: 1280, height: 720 });
-
-    console.log(url);
+    console.log(url,selectedChapters,"in Serire") // true
     const response = await page.goto(url, {
       waitUntil: 'domcontentloaded',
       timeout: 0,
     });
 
-    if (response.status() != 200) {
+    if (response.status() !== 200) {
       return {
         status: 'Error',
-        Error: 'an error has occured',
+        Error: 'an error has occurred',
       };
     }
 
-    // if the url of given has read as a path
+    // Check if the URL contains '/read/' path and handle accordingly
     let urlRead = /\/read\//;
     if (urlRead.test(url)) {
       const indexSerie = await page.$('.c_index a');
       let serieUrl = await page.evaluate((el) => el.href, indexSerie);
 
-      console.log('the serie url', serieUrl);
+      console.log('The serie URL:', serieUrl);
       url = serieUrl;
     }
-    // if url has toc path in the end eg : ?toc=11#content1
+
+    // If URL contains toc path at the end (e.g., ?toc=11#content1), extract the base URL
     let serieMatch = /(https?:\/\/www.scribblehub.com\/series\/\d+\/(\w|\W)*\/)\?toc=\d/;
     if (serieMatch.test(url)) {
       url = url.match(serieMatch)[1];
     }
-    const linkToFile = await generatePdf(url, page);
+
+    // Call generatePdf with the corrected URL and selected chapters
+    const linkToFile = await generatePdf(url, page, selectedChapters);
     browser.close();
     return linkToFile;
   } catch (err) {
@@ -95,116 +111,179 @@ const getSerieDownloadLink = async (url) => {
   }
 };
 
-const generatePdf = async (url, page) => {
-  try {
-    // Create a document PDF
-    const doc = new PDFDocument();
 
+
+const generatePdf = async (url, page, selectedChapters) => {
+  try {
+    var doc = new PDFDocument();
+    console.log("going to url")
     await page.goto(url);
     progress.serieName = await page.$eval('.fic_title', (el) => el.innerHTML);
-    console.log('the serie name', progress.serieName);
+    const sanitizedTitle = progress.serieName.replace(/[^a-zA-Z0-9 ]/g, '');
+    console.log(selectedChapters[0], sanitizedTitle)
 
-    // Pipe its output somewhere, like to a file or HTTP response
-    // See below for browser usage
-    doc.pipe(
-      fs.createWriteStream(`./downloads/${progress.serieName.replace(/[^a-zA-Z0-9 ]/g, '')}.pdf`),
-    );
+    let partCounter = Math.floor(selectedChapters[0] / 10);
 
-    // write the book infos in the PDF Document
-    doc.font('Times-Bold').fontSize(35).text(progress.serieName, {
-      align: 'center',
-    });
+    if (selectedChapters[0] === 1) {
+      doc.pipe(fs.createWriteStream(`./downloads/${sanitizedTitle}.pdf`));
+    } else {
+      doc.pipe(fs.createWriteStream(`./downloads/${sanitizedTitle}_part${partCounter}.pdf`));
+    }
+    console.log("pipe added")
 
-    doc.moveDown();
+    // Add synopsis stuff
+    if (selectedChapters[0] === 1) {
+      doc.font('Times-Bold').fontSize(35).text(progress.serieName, {
+        align: 'center',
+      });
 
-    const serieImage = await page.$eval('.fic_image img', (el) => el.src);
+      doc.moveDown();
 
-    console.log('image', serieImage);
-    const image = await fetchImage(serieImage);
-    let imageWidth = 180;
-    doc
-      .image(image, doc.page.width / 2 - imageWidth / 2, doc.y, {
-        width: imageWidth,
-      })
-      .stroke();
-    doc.moveDown(0.5);
-    // addImageToPdf(doc, page, serieImage);
-    progress.authorName = await page.$eval('.auth_name_fic', (el) => el.textContent);
-    addSerieInfoToPdf(doc, 'Author Name : ', progress.authorName);
-    doc.moveDown(0.5);
-    addSerieInfoToPdf(doc, 'Serie Link : ', url, 16, 'blue');
-    doc.moveDown(0.5);
-    addSerieInfoToPdf(
-      doc,
-      'Author Link : ',
-      await page.$eval("span[property='name'] a", (el) => el.href),
-      16,
-      'blue',
-    );
-    doc.moveDown(0.5);
-    progress.lastUpdate = await page.$eval(
-      '.toc_ol:first-child .fic_date_pub',
-      (el) => el.textContent,
-    );
-    addSerieInfoToPdf(doc, 'Last Update : ', progress.lastUpdate);
-    doc.moveDown(0.5);
-    progress.numberOfChapter = parseInt(
-      await page.$eval('.toc_ol :first-child ', (el) => el.getAttribute('order')),
-    );
-    addSerieInfoToPdf(doc, 'number of chapters : ', `${progress.numberOfChapter} chapters`);
-    doc.moveDown(0.5);
-    doc.addPage();
-    addSerieInfoToPdf(
-      doc,
-      'SYNOPSIS : ',
-      convert(await page.evaluate((el) => el.innerHTML, await page.$('.wi_fic_desc')), {
-        wordwrap: 130,
-      }),
-    );
+      const serieImage = await page.$eval('.fic_image img', (el) => el.src);
 
-    // get the url of last table of content
+      const image = await fetchImage(serieImage);
+      let imageWidth = 180;
+      doc
+        .image(image, doc.page.width / 2 - imageWidth / 2, doc.y, { width: imageWidth })
+        .stroke();
+      doc.moveDown(0.5);
+
+      progress.authorName = await page.$eval('.auth_name_fic', (el) => el.textContent);
+      addSerieInfoToPdf(doc, 'Author Name : ', progress.authorName);
+      doc.moveDown(0.5);
+
+      addSerieInfoToPdf(doc, 'Serie Link : ', url, 16, 'blue');
+      doc.moveDown(0.5);
+
+      progress.lastUpdate = await page.$eval('.toc_ol:first-child .fic_date_pub', (el) => el.textContent);
+      addSerieInfoToPdf(doc, 'Last Update : ', progress.lastUpdate);
+      doc.moveDown(0.5);
+
+      progress.numberOfChapter = selectedChapters.length;
+      addSerieInfoToPdf(doc, 'number of chapters : ', `${progress.numberOfChapter} chapters`);
+      doc.moveDown(0.5);
+
+      doc.addPage();
+      addSerieInfoToPdf(
+        doc,
+        'SYNOPSIS : ',
+        convert(await page.evaluate((el) => el.innerHTML, await page.$('.wi_fic_desc')), {
+          wordwrap: 130,
+        })
+      );
+      console.log("header content added")
+    }
+
+    // Process only the selected chapters
     let lastTocUrl = url;
+    let allChapterLinks = [];  
+    await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 0 });
+
     while (
       (await page.$("a[class='page-link next']")) &&
       /\?toc/.test(await page.$eval("a[class='page-link next']", (el) => el.href))
     ) {
-      await page.goto(await page.$eval("a[class='page-link next']", (el) => el.href));
+      const tocLinks = await page.$$eval("li[order] a", els =>
+        els.map(el => ({
+          href: el.href,
+          order: parseInt(el.closest('li').getAttribute('order'))
+        }))
+      );
+      allChapterLinks.push(...tocLinks);
 
-      lastTocUrl = await page.$eval("a[class='current']", (el) => el.href);
-    }
-    // get the url of the first chapter in the book
-    let firstChapterHref = await page.$eval("li[order='1'] a", (el) => el.href);
-
-    progress.currentProgress = 1;
-    console.log(`href of index ${progress.currentProgress} : ${firstChapterHref}`);
-
-    await page.goto(firstChapterHref, {
-      waitUntil: 'domcontentloaded',
-      timeout: 0,
-    });
-    await addChapterTitle(doc, page);
-    await addChapterContent(doc, page);
-
-    while (await page.$("a[class='btn-wi btn-next']")) {
-      let nextHref = await page.$eval("a[class='btn-wi btn-next']", (el) => el.href);
-      await page.goto(nextHref, {
+      await page.goto(await page.$eval("a[class='page-link next']", el => el.href), {
         waitUntil: 'domcontentloaded',
         timeout: 0,
       });
 
-      progress.currentProgress++;
-      console.log(`href of index ${progress.currentProgress} : ${nextHref}`);
-      await addChapterTitle(doc, page);
-      await addChapterContent(doc, page);
+      lastTocUrl = await page.$eval("a[class='current']", el => el.href);
     }
 
-    console.log('end of pdf');
+    const lastPageLinks = await page.$$eval("li[order] a", els =>
+      els.map(el => ({
+        href: el.href,
+        order: parseInt(el.closest('li').getAttribute('order'))
+      }))
+    );
+    allChapterLinks.push(...lastPageLinks);
+
+    const filteredChapterLinks = allChapterLinks
+      .filter(link => selectedChapters.includes(link.order))
+      .sort((a, b) => a.order - b.order); // optional: ensure in order
+
+    if (!filteredChapterLinks.length) {
+      throw new Error("No matching chapters found in TOC");
+    }
+
+    // Retry logic for batch processing
+    const processBatch = async (startIdx) => {
+      const batchLinks = filteredChapterLinks.slice(startIdx, startIdx + 10);
+      for (let i = 0; i < batchLinks.length; i++) {
+        const chapterLink = batchLinks[i];
+        progress.currentProgress = startIdx + i + 1;
+        console.log(`Navigating to chapter ${chapterLink.order} : ${chapterLink.href}`);
+      
+        let retryCount = 0;
+        let success = false;
+      
+        while (retryCount < 10 && !success) {
+          try {
+            await page.goto(chapterLink.href, {
+              waitUntil: 'domcontentloaded',
+              timeout: 0,
+            });
+      
+            await addChapterTitle(doc, page);
+            await addChapterContent(doc, page);
+      
+            success = true; // If everything works, set success to true to exit the loop
+          } catch (err) {
+            console.error(`Error at chapter ${chapterLink.order}:`, err);
+            retryCount++;
+      
+            if (retryCount === 10) {
+              const partialPath = path.join(__dirname, 'output', `partial_${Date.now()}.pdf`);
+              doc.end();
+              await new Promise(resolve => doc.on('end', resolve));
+              throw new Error(`Error at chapter ${chapterLink.order}. Partial PDF saved at: ${partialPath}`);
+            }
+            await new Promise(resolve => setTimeout(resolve, 2000));
+            console.log(`Retrying chapter ${chapterLink.order}... Attempt #${retryCount}`);
+          }
+        }
+      
+        if (!success) {
+          console.log(`Failed to process chapter ${chapterLink.order} after 5 attempts.`);
+        }
+      }
+  };
+
+    for (let i = 0; i < filteredChapterLinks.length; i += 10) {
+      await processBatch(i);
+
+      // If we completed a batch of 10, prepare for the next batch
+      if ((i + 10) < filteredChapterLinks.length) {
+        doc.end();
+        console.log("timeout")
+        await new Promise(resolve => setTimeout(resolve, 10000)); // Wait 60 seconds before the next batch
+        partCounter = partCounter+1
+        console.log("new partCounter")
+        const nextFileName = `${sanitizedTitle}_part${partCounter}.pdf`;
+
+        doc = new PDFDocument();
+        console.log("new document created")
+        doc.pipe(fs.createWriteStream(`./downloads/${nextFileName}`));
+        doc.addPage();
+      }
+    }
+
     doc.end();
 
     return {
       status: 'Success',
-      link: `/download/${progress.serieName.replace(/[^a-zA-Z0-9 ]/g, '')}.pdf`,
+      link: `/download/${sanitizedTitle}.pdf`,
     };
+
   } catch (err) {
     return {
       status: 'Error',
@@ -212,6 +291,9 @@ const generatePdf = async (url, page) => {
     };
   }
 };
+
+
+
 
 const fetchImage = async (src) => {
   const image = await axios.get(src, {
